@@ -58,9 +58,40 @@ def golden_ratio(a, b, max_calc_num):
     eps = (b - a) / 2
 
     return min, eps
+
+def dichotomy(a, b, max_calc_num):
+    delta = 0.000001
+    
+    x_1 = (a + b) / 2 - delta
+    x_2 = (a + b) / 2 + delta
+    
+    f_1 = func(x_1)
+    f_2 = func(x_2)
+    
+    func_calc_num = 0
+    
+    while(func_calc_num < max_calc_num):
+        if (f_1 < f_2):
+            b = x_2
+        else:
+            a = x_1
+        
+        x_1 = (a + b) / 2 - delta
+        x_2 = (a + b) / 2 + delta
+        
+        f_1 = func(x_1)
+        f_2 = func(x_2)
+        
+        func_calc_num += 2
+    
+    min = (b + a) / 2
+    eps = (b - a) / 2
+    
+    return min, eps
     
 min_perebor, perebor_func_calc_num = perebor(0, 1, 0.05)
 min_gold, eps_gold = golden_ratio(0, 1, perebor_func_calc_num)
+min_dich, eps_dich = dichotomy(0, 1, 20)
 
 print('Минимум:\t\t\t', min_perebor)
 print('Значение в минимуме:\t\t', func(min_perebor))
@@ -71,3 +102,9 @@ print()
 print('Минимум:\t\t\t', min_gold)
 print('Значение в минимуме:\t\t', func(min_gold))
 print('Точность:\t\t\t', eps_gold)
+
+print()
+
+print('Минимум:\t\t\t', min_dich)
+print('Значение в минимуме:\t\t', func(min_dich))
+print('Точность:\t\t\t', eps_dich)
