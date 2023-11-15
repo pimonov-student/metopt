@@ -1,8 +1,9 @@
 import numpy as np
 
-
-
+great_num_of_calc = 0
 def function(arg):
+    global great_num_of_calc
+    great_num_of_calc += 1
     return 5 * (arg[0] ** 2) + 5 * (arg[1] ** 2) + 8 * arg[0] * arg[1]
 
 def golden_ratio(func, a, b, x_2, eps, coord):
@@ -39,72 +40,83 @@ def golden_ratio(func, a, b, x_2, eps, coord):
     return min
 
 def coordinate_descent(func, dim, eps, start):
-    delta = eps / np.sqrt(dim)
     curr_point = start.copy()
+    prev_point = start.copy()
 
-    for coord in range(dim):
-        # Будем хранить начальное направление убывания функции
-        # и флаг, оповещающий о нахождении диапазона
-        direction = ""
-        area_is_found = False
+    while (True):
+        delta = eps / np.sqrt(dim)
+        for coord in range(dim):
+            # Будем хранить начальное направление убывания функции
+            # и флаг, оповещающий о нахождении диапазона
+            direction = ""
+            area_is_found = False
 
-        # Определяем начальный диапазон
-        a = curr_point.copy()
-        b = a.copy()
-        b[coord] += delta
+            # Определяем начальный диапазон
+            a = curr_point.copy()
+            b = a.copy()
+            b[coord] += delta
 
-        # Значения функции в начальных точках
-        f_a = func(a)
-        f_b = func(b)
+            # Значения функции в начальных точках
+            f_a = func(a)
+            f_b = func(b)
 
-        # Ищем диапазон
-        while(not area_is_found):
-            # Первая итерация, определяем направление убывания
-            if (direction == ""):
-                if (f_b > f_a):
-                    direction = "left"
-                elif (f_b < f_a):
-                    direction = "right"
-                else:
-                    area_is_found = True
-                    continue
-            
-            # Функция убывает "влево"
+            # Ищем диапазон
+            while(not area_is_found):
+                # Первая итерация, определяем направление убывания
+                if (direction == ""):
+                    if (f_b > f_a):
+                        direction = "left"
+                    elif (f_b < f_a):
+                        direction = "right"
+                    else:
+                        area_is_found = True
+                        continue
+                
+                # Функция убывает "влево"
+                if (direction == "left"):
+                    if (f_b > f_a):
+                        last_edge = b.copy()
+                        b = a.copy()
+                        f_b = f_a
+                        delta *= (np.sqrt(5) + 1) / 2
+                        a[coord] -= delta
+                        f_a = func(a)
+                    else:
+                        area_is_found = True
+                        continue
+                # Функция убывает "вправо"
+                elif (direction == "right"):
+                    if (f_b < f_a):
+                        last_edge = a.copy()
+                        a = b.copy()
+                        f_a = f_b
+                        delta *= (np.sqrt(5) + 1) / 2
+                        b[coord] += delta
+                        f_b = func(b)
+                    else:
+                        area_is_found = True
+                        continue
+
+            # Нашли диапазон    
+            # print("area is found")
+
+            # Ищем минимум по координате
             if (direction == "left"):
-                if (f_b > f_a):
-                    last_edge = b.copy()
-                    b = a.copy()
-                    f_b = f_a
-                    delta *= (np.sqrt(5) + 1) / 2
-                    a[coord] -= delta
-                    f_a = func(a)
-                else:
-                    area_is_found = True
-                    continue
-            # Функция убывает "вправо"
+                coord_min = golden_ratio(func, a, last_edge, b, eps, coord)
             elif (direction == "right"):
-                if (f_b < f_a):
-                    last_edge = a.copy()
-                    a = b.copy()
-                    f_a = f_b
-                    delta *= (np.sqrt(5) + 1) / 2
-                    b[coord] += delta
-                    f_b = func(b)
-                else:
-                    area_is_found = True
-                    continue
+                coord_min = golden_ratio(func, last_edge, b, a, eps, coord)
+            
+            curr_point[coord] = coord_min
 
-        # Нашли диапазон    
-        print("area is found")
-
-        # Ищем минимум по координате
-        if (direction == "left"):
-            coord_min = golden_ratio(func, a, last_edge, b, eps, coord)
-        elif (direction == "right"):
-            coord_min = golden_ratio(func, last_edge, b, a, eps, coord)
+        length = 0
+        for coord in range(dim):
+            length += (prev_point[coord] - curr_point[coord]) ** 2
+        length = np.sqrt(length)
         
-        curr_point[coord] = coord_min
-        
+        if length <= eps:
+            break
+        prev_point = curr_point.copy()
+    
     return curr_point
 
 dimension = 2
@@ -117,9 +129,6 @@ start_point = [1, 1]
 # num_of_calculations = 0
 
 res = coordinate_descent(function, dimension, epsilon, start_point)
-res = coordinate_descent(function, dimension, epsilon, res)
-res = coordinate_descent(function, dimension, epsilon, res)
-res = coordinate_descent(function, dimension, epsilon, res)
-print(res)
-print(function(res))
-print(function([0, 0]))
+print("result point:\t\t", res)
+print("f(result point):\t", function(res))
+print("number of calculations:\t", great_num_of_calc)
